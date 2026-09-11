@@ -1,5 +1,3 @@
-<skill name="dotnet-coding-standards">
-
 ## PURPOSE
 
 Implement a targeted production-code bug fix in a .NET
@@ -221,5 +219,3 @@ After returning the status lines:
 - Do not call any other tool.
 - Do not continue reasoning.
 - Return control to the orchestrator immediately.
-
-</skill>

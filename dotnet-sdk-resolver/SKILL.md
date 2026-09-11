@@ -1,5 +1,3 @@
-<skill name="dotnet-sdk-resolver">
-
 ## PURPOSE
 
 Independently locate, verify, and export the .NET 10 SDK
@@ -69,5 +67,3 @@ If the SDK cannot be located or verified:
 - Set the stage status to FAILED.
 - Record SDK_RESOLUTION=FAILED in the artifact.
 - Stop and return control to the orchestrator.
-
-</skill>

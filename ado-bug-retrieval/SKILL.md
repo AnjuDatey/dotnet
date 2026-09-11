@@ -1,5 +1,3 @@
-<skill name="ado-bug-retrieval">
-
 ## PURPOSE
 
 Retrieve and validate the Azure DevOps Work Item identified by
@@ -309,5 +307,3 @@ After returning the status line:
 - Do not call any other tool.
 - Do not continue reasoning.
 - Return control to the orchestrator immediately.
-
-</skill>

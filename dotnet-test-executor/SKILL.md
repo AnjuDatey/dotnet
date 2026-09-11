@@ -1,5 +1,3 @@
-<skill name="dotnet-test-executor">
-
 ## PURPOSE
 
 Execute targeted .NET tests to validate a bug fix and produce
@@ -191,5 +189,3 @@ After returning the status lines:
 - Do not call any other tool.
 - Do not continue reasoning.
 - Return control to the orchestrator immediately.
-
-</skill>

@@ -1,5 +1,7 @@
+---
 name: code-review-standards
 description: Apply a structured seven-criteria code review to a .NET production-code bug fix, producing a code-review.md artifact with a clear APPROVED, CHANGES_REQUIRED, or FAILED verdict. Use when a workflow needs an independent review of a committed fix before merging. Do NOT use for implementing fixes, running tests, committing changes, or creating pull requests.
+---
 
 ## PURPOSE
 

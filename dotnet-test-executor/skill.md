@@ -1,3 +1,6 @@
+name: dotnet-test-executor
+description: Identify, execute, and document authoritative automated tests for a .NET bug scenario, producing or updating a test-validation.md artifact. Use when a workflow needs to validate that a bug is reproducible before a fix, or that a fix resolves the bug after implementation. Do NOT use for implementing production code fixes, root cause analysis, committing changes, or creating pull requests.
+
 ## PURPOSE
 
 Execute targeted .NET tests to validate a bug fix and produce

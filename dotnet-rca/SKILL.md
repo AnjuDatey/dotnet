@@ -1,5 +1,3 @@
-<skill name="dotnet-rca">
-
 ## PURPOSE
 
 Investigate the reported bug against the repository source code,
@@ -198,5 +196,3 @@ After returning the status line:
 - Do not modify any file.
 - Do not continue reasoning.
 - Return control to the orchestrator immediately.
-
-</skill>

@@ -1,6 +1,6 @@
 ---
 name: dotnet-coding-standards
-description: Enforce .NET coding standards and stale artifact checks when implementing a production-code bug fix in a cloned repository. Use when a workflow needs to apply a validated fix to .NET application source code and verify the build passes. Do NOT use for root cause analysis, test creation or execution, code review, committing changes, or creating pull requests.
+description: Implement a targeted production-code bug fix in a .NET codebase, verify the build passes, and produce a structured size-capped fix-summary.md artifact. Handles production implementation and build validation only — testing is owned by separate sub-agents.
 ---
 
 ## PURPOSE

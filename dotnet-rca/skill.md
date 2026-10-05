@@ -1,6 +1,6 @@
 ---
 name: dotnet-rca
-description: Investigate a reported .NET bug in a cloned repository, confirm the technical root cause, and produce a structured bug-analysis.md artifact. Use when a workflow needs to perform root cause analysis on a bug after its details have been retrieved. Do NOT use for retrieving work items, implementing code fixes, modifying tests, running tests, committing changes, or creating pull requests.
+description: Investigate a reported bug against the repository source code, confirm the technical root cause, and produce a structured size-capped bug-analysis.md artifact. Performs root cause analysis and fix planning only — never modifies source code, tests, or creates branches/PRs.
 ---
 
 ## PURPOSE

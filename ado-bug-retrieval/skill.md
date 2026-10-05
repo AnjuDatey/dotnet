@@ -2,6 +2,9 @@
 name: ado-bug-retrieval
 description: Retrieve and validate an Azure DevOps Work Item for bug-fix eligibility, producing a structured bug-details.md artifact. Use when a workflow needs to fetch and validate a Bug work item before any analysis or fix work begins. Do NOT use for root-cause analysis, source code inspection, code modification, running tests, or creating branches/commits.
 ---
+
+# ADO Bug Retrieval
+
 ## PURPOSE
 
 Retrieve and validate the Azure DevOps Work Item identified by
@@ -295,7 +298,9 @@ ACCEPTANCE_CRITERIA: Not Available
 
 3. Return exactly:
 BUG_ELIGIBILITY_STATUS=RETRIEVAL_FAILED
+
 ---
+
 ## COMPLETION
 
 After writing working-repo/.agent/bug-details.md, return

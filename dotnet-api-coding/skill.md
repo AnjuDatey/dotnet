@@ -1,4 +1,7 @@
-<skill name="dotnet-coding-standards">
+---
+name: dotnet-api-coding
+description: Implement a targeted production-code bug fix in a .NET codebase, verify the build passes, and produce a structured size-capped fix-summary.md artifact. Handles production implementation and build validation only — testing is owned by separate sub-agents.
+---
 
 ## PURPOSE
 
@@ -221,5 +224,3 @@ After returning the status lines:
 - Do not call any other tool.
 - Do not continue reasoning.
 - Return control to the orchestrator immediately.
-
-</skill>

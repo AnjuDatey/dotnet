@@ -1,6 +1,6 @@
 ---
 name: dotnet-sdk-resolver
-description: Resolve and configure the correct .NET SDK version required to build and test a .NET repository, independently of PATH, DOTNET_ROOT, or any environment variable inherited from previous steps. Use before any dotnet build or dotnet test command in a workflow step. Do NOT use for code analysis, code modification, test authoring, or Azure DevOps operations.
+description: Independently locate, verify, and export the .NET 10 SDK before executing any dotnet command. Mandatory for every agent that runs dotnet commands, since shell state, PATH, and DOTNET_ROOT from other workflow nodes are never available and must be resolved independently every time.
 ---
 
 ## PURPOSE

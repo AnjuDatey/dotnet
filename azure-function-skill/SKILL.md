@@ -5,7 +5,7 @@ description: Scaffold production-ready Azure Function Apps (.NET 10, C# 13) from
 
 # Azure Function App - Complete .NET 10 Guideline
 
-> SELF-CONTAINED. Does NOT depend on any external NewFunctionApp-LLM-Guideline.md.
+> SELF-CONTAINED.
 > Every pattern required to generate a complete, compiling app is inlined below.
 
 ## When to Use

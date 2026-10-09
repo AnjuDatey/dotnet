@@ -1,343 +1,160 @@
 ---
 name: new-azure-function
-description:  Scaffold production-ready Azure Function Apps (.NET 10, C# 13) from scratch using Clean Architecture (4 layers), Entity Framework Core 10 Code-First with PostgreSQL, JWT authentication, RBAC authorization, unified ApiResponse
- envelope, FluentValidation, AutoMapper, OpenTelemetry observability, AES-256 PII encryption, and enterprise-grade EF Core migration strategy (versioned, PR-reviewable, pipeline-controlled). For NEW Function Apps onlyΓÇöuse
- add-function-dotnet10 for extending existing apps.
----
-# Azure Function App - Complete .NET 10 Implementation Guideline
-## When to Use This Skill
-
-✅ **Use this skill when:**
-- User story requires a NEW Azure Function App
-- Building from scratch (not adding to existing app)
-- Need complete end-to-end scaffolding
-- Code-First EF Core with PostgreSQL
-- Clean Architecture (4 layers)
-
-❌ **Do NOT use when:**
-- Adding function to existing app
-- Modifying existing entities
-- Non-Azure Functions project
-
+description: Scaffold production-ready Azure Function Apps (.NET 10, C# 13) from scratch using Clean Architecture (4 layers), EF Core 10 Code-First with PostgreSQL, JWT auth, RBAC, unified ApiResponse envelope, FluentValidation, AutoMapper, OpenTelemetry, AES-256 PII encryption, mandatory OpenAPI 3.0 + Swagger UI, and controlled EF Core migrations. For NEW Function Apps only - use add-function-dotnet10 for extending existing apps.
 ---
 
-## .NET 10 Technology Stack
+# Azure Function App - Complete .NET 10 Guideline
 
-**CRITICAL: This guideline uses .NET 10
+> SELF-CONTAINED. Does NOT depend on any external NewFunctionApp-LLM-Guideline.md.
+> Every pattern required to generate a complete, compiling app is inlined below.
 
-| Component | Version |
-|-----------|---------|
-| Runtime | **.NET 10** (Isolated Worker Model) |
-| Language | **C# 13** |
-| EF Core | **Entity Framework Core 10** |
-| Azure Functions | v4 (Isolated) |
-| PostgreSQL Provider | Npgsql.EntityFrameworkCore.PostgreSQL **10.x** |
-| FluentValidation | 11.x |
-| AutoMapper | 13.x |
-| OpenTelemetry | 2.x |
-| JWT Tokens | Microsoft.IdentityModel.Tokens **8.x** |
+## When to Use
+USE when a NEW module Function App is required and
+`src/{ProjectName}.{Module}/{ProjectName}.{Module}.Functions/{ProjectName}.{Module}.Functions.csproj` does NOT exist.
+Do NOT use for existing modules (use add-function-dotnet10).
 
----
-
-## Complete Reference Document
-
-**Primary Source:** Your comprehensive `NewFunctionApp-LLM-Guideline.md` document
-
-**Apply these .NET 10 overrides** to every section:
-
-### 1. Technology Stack Overrides
-
+## CRITICAL: Canonical Folder Structure (MANDATORY)
 ```
-WHERE the reference doc says:     USE instead:
-----------------------------------  ---------------------------------
-.NET 8                           →  .NET 10
-C# 12                            →  C# 13
-Entity Framework Core 8          →  Entity Framework Core 10
-EF Core 8.x                      →  EF Core 10.x
+<root>/
+  {ProjectName}.sln
+  src/{ProjectName}.{Module}/
+    {ProjectName}.{Module}.Domain/          {ProjectName}.{Module}.Domain.csproj
+    {ProjectName}.{Module}.Application/      {ProjectName}.{Module}.Application.csproj
+    {ProjectName}.{Module}.Infrastructure/   {ProjectName}.{Module}.Infrastructure.csproj
+    {ProjectName}.{Module}.Functions/       {ProjectName}.{Module}.Functions.csproj
+  tests/{ProjectName}.{Module}.Tests/        {ProjectName}.{Module}.Tests.csproj
 ```
+RULES:
+- Projects live under src/{ProjectName}.{Module}/. Tests under tests/.
+- Module name ALWAYS {ProjectName}.{Module} (e.g. ProjectName.Module).
+- Namespaces EQUAL project names.
+- Correct:  src/{ProjectName}.{Module}/{ProjectName}.{Module}.Domain/Entities/{Entity}.cs
+- WRONG:    {Module}FunctionApp/Domain/... (flat / single combined project)
+- WRONG:    src/{Module}.Domain/... (missing {ProjectName}. module folder)
+- NEVER create a single combined {FunctionAppName} project. ALWAYS 4 layer projects.
 
-### 2. NuGet Package Version Overrides
+## Tech Stack
+.NET 10 (Isolated), C# 13, EF Core 10, Azure Functions v4, Npgsql 10.x,
+FluentValidation 11.x, AutoMapper 13.x, OpenTelemetry 2.x,
+Microsoft.Azure.Functions.Worker.Extensions.OpenApi 2.x, IdentityModel.Tokens 8.x.
 
-**Infrastructure Project:**
+## NuGet - Infrastructure
 ```xml
 <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.*" />
 <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.*" />
 <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.*" />
 <PackageReference Include="EFCore.NamingConventions" Version="10.*" />
-<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.*" />
 <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.*" />
 <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.*" />
 ```
-
-**Functions Project:**
+## NuGet - Functions
 ```xml
 <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.*" />
 <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="4.*" />
 <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="2.*" />
 <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.*" />
 <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.OpenApi" Version="2.*" />
-<PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="2.*" />
 <PackageReference Include="OpenTelemetry" Version="2.*" />
-<PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="2.*" />
-<PackageReference Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" Version="1.*" />
 ```
-
-### 3. Project File (.csproj) Overrides
-
+## Common csproj
 ```xml
-<PropertyGroup>
-  <TargetFramework>net10.0</TargetFramework>
-  <LangVersion>13.0</LangVersion>
-  <Nullable>enable</Nullable>
-  <ImplicitUsings>enable</ImplicitUsings>
-</PropertyGroup>
+<TargetFramework>net10.0</TargetFramework>
+<LangVersion>13.0</LangVersion>
+<Nullable>enable</Nullable>
+<ImplicitUsings>enable</ImplicitUsings>
+```
+References: Application->Domain; Infrastructure->Domain; Functions->Application,Infrastructure.
+Infrastructure NEVER referenced by Application/Domain.
+
+## Layer Responsibilities
+Domain: BaseEntity (CreatedAt/By, UpdatedAt/By, IsActive, IsDeleted, Version),
+entities with private setters + Create/Update/Deactivate, Enums, Exceptions,
+IUnitOfWork, IRepository + per-entity repo interfaces.
+Application: Common/Responses (ApiResponse, ApiError, ValidationErrorDetail, PagedResponse),
+Common/Constants (ErrorCodes, ErrorCategories, Roles), DTOs/{Entity}, Validators,
+Services + Interfaces, Mappings/MappingProfile.
+Infrastructure: ApplicationDbContext (+ design-time factory,
+MigrationsAssembly({ProjectName}.{Module}.Infrastructure), UseSnakeCaseNamingConvention),
+Configurations, Migrations (CLI only), Repositories, UnitOfWork, DependencyInjection.
+Functions: {Entity}Function (HTTP triggers, zero business logic), Middleware order
+Correlation -> JwtAuthentication -> ExceptionHandling, AuthorizationHelper,
+Extensions, OpenApi/OpenApiConfigurationOptions, Program.cs, host.json, local.settings.json.
+
+## MANDATORY: OpenAPI 3.0 + Swagger UI
+Every app MUST:
+1. Reference the OpenApi worker extension.
+2. Provide OpenApiConfigurationOptions (V3, title, version, Bearer/JWT scheme).
+3. Expose /api/swagger/ui and /api/openapi/v3.json.
+4. Decorate EVERY endpoint with: [OpenApiOperation], [OpenApiSecurity Bearer JWT],
+   [OpenApiParameter] (path/query), [OpenApiRequestBody] (POST/PUT),
+   [OpenApiResponseWithBody] for EVERY status code (200/201,400,401,403,404,409)
+   using ApiResponse<T>.
+An app without reachable Swagger UI or missing [OpenApi*] on any endpoint is INCOMPLETE.
+```csharp
+public sealed class OpenApiConfigurationOptions : DefaultOpenApiConfigurationOptions {
+  public override OpenApiInfo Info { get; set; } = new() {
+    Version="1.0.0", Title="{ProjectName} {Module} API",
+    Description="{ProjectName} {Module} module - Azure Functions (.NET 10)." };
+  public override OpenApiVersionType OpenApiVersion { get; set; } = OpenApiVersionType.V3;
+}
 ```
 
-### 4. Migration CLI Command Overrides
+## API Response Contract
+Success: { success:true, data, correlationId, timestamp }
+Error:   { success:false, error:{ code, category, message, details[] }, correlationId, timestamp }
 
+## System-Generated / Immutable / Unique / Audit (story-driven)
+Honour design.json field flags:
+- isSystemGenerated: service sets on create; NOT in Create DTO / request body.
+- isImmutable: no update path; reject changes.
+- defaultValue: service sets on create (e.g. Status=Draft, Version=1).
+- isUnique + uniquenessScope: enforce uniqueness in service within scope; field-level error.
+- allowedValues: model as enum or validate against configured list.
+- audit requirement: generate AuditRecord (UserId, Timestamp, Action, EntityId)
+  written in the SAME transaction; append-only, never overwritten.
+```csharp
+public static {Entity} Create(string name, string? description, Guid businessUnitId, string owner) {
+  ArgumentException.ThrowIfNullOrWhiteSpace(name);
+  ArgumentException.ThrowIfNullOrWhiteSpace(owner);
+  return new {Entity} {
+    {Entity}Id = GenerateId(),  // immutable system id
+    Name = name, Description = description, BusinessUnitId = businessUnitId,
+    Status = {Entity}Status.Draft, Owner = owner, Version = 1,
+    CreatedBy = owner, CreatedAt = DateTime.UtcNow, IsActive = true };
+}
+```
+
+## EF Core Migrations
+NEVER call Database.Migrate() in app code; never hand-edit migrations.
 ```bash
-# Install/Update EF Core tools for .NET 10
-dotnet tool install --global dotnet-ef --version 10.*
-dotnet tool update --global dotnet-ef --version 10.*
-```
-
-### 5. C# 13 Language Features to Use
-
-**Primary Constructor Enhancement:**
-```csharp
-// Preferred pattern in .NET 10 / C# 13
-public class AssessmentService(
-    IUnitOfWork unitOfWork,
-    IMapper mapper,
-    ILogger<AssessmentService> logger) : IAssessmentService
-{
-    // No need to declare private fields manually - parameters become fields automatically
-}
-```
-
-**Collection Expressions:**
-```csharp
-// C# 13 style
-string[] allowedRoles = ["Manager", "Administrator"];
-List<ValidationError> errors = [];
-```
-
----
-
-## Key Architecture Principles
-
-(All principles from reference document apply - key highlights:)
-
-### Clean Architecture Dependency Rules
-
-```
-Functions (Presentation Layer)
-    ↓ depends on
-Application Layer
-    ↓ depends on
-Domain Layer
-    ↑
-Infrastructure (also depends on Domain, implements interfaces)
-```
-
-**CRITICAL:** Infrastructure NEVER referenced by Application or Domain
-
-### Code-First Migration Strategy
-
-**NEVER:**
-- ❌ Call `Database.Migrate()` or `MigrateAsync()` from `Program.cs`
-- ❌ Hand-edit generated migration files
-- ❌ Apply migrations from application startup
-
-**ALWAYS:**
-- ✅ Generate via `dotnet ef migrations add {MigrationName}`
-- ✅ Apply via separate, controlled pipeline step
-- ✅ Include idempotent SQL script in PR for review
-- ✅ Use expand/contract pattern for breaking changes
-
-### API Response Contract
-
-**ALL endpoints return `ApiResponse<T>` envelope:**
-
-✅ Success:
-```json
-{
-  "success": true,
-  "data": { "...": "..." },
-  "correlationId": "...",
-  "timestamp": "2025-01-02T..."
-}
-```
-
-❌ Error:
-```json
-{
-  "success": false,
-  "error": {
-    "code": "ENTITY_NOT_FOUND",
-    "category": "NOT_FOUND",
-    "message": "...",
-    "details": []
-  },
-  "correlationId": "...",
-  "timestamp": "2025-01-02T..."
-}
-```
-
----
-
-## Design Workflow
-
-When using this skill in a Design Agent:
-
-1. **Read user story** from `story.json`
-2. **Extract entities, fields, relationships** from acceptance criteria
-3. **Infer business area** from feature area/tags
-4. **Apply all patterns** from reference document
-5. **Override versions** to .NET 10 per this skill
-6. **Output** complete design as `complete-design.json`
-
----
-
-## Code Generation Checklist
-
-For each `{Entity}` from user story:
-
-### Domain Layer ✅
-- [ ] `{Entity}.cs` (inherit BaseEntity, private setters, factory method)
-- [ ] Related enums (if any)
-- [ ] `I{Entity}Repository.cs`
-
-### Application Layer ✅
-- [ ] `{Entity}Dto.cs`, `Create{Entity}Dto.cs`, `Update{Entity}Dto.cs`
-- [ ] `Create{Entity}Validator.cs`, `Update{Entity}Validator.cs` (FluentValidation)
-- [ ] `I{Entity}Service.cs` + `{Entity}Service.cs`
-- [ ] Add error codes to `ErrorCodes.cs`
-
-### Infrastructure Layer ✅
-- [ ] `{Entity}Configuration.cs` (EF Core fluent config)
-- [ ] `{Entity}Repository.cs`
-- [ ] Update `ApplicationDbContext.cs` (add DbSet)
-- [ ] Update `UnitOfWork.cs`
-- [ ] **Generate migration** (via CLI, not hand-authored)
-
-### Functions Layer ✅
-- [ ] `{Entity}Function.cs` with full OpenAPI attributes
-- [ ] RBAC role assignments per endpoint
-
----
-
-## Critical Safety Rules
-
-### 🔒 Security
-- ✅ PII fields encrypted at application layer (AES-256-GCM)
-- ✅ Secrets from Azure Key Vault (never hardcoded)
-- ✅ PostgreSQL SSL Mode=Require
-- ✅ JWT validation via middleware
-
-### 🗄️ Database
-- ✅ Code-First with EF Core 10
-- ✅ Migrations via separate pipeline (not app startup)
-- ✅ Soft delete (never `DbSet.Remove()`)
-- ✅ All FK relationships: `DeleteBehavior.Restrict`
-
-### 🎯 Coding Standards
-- ✅ Async all the way (propagate `CancellationToken ct`)
-- ✅ Private setters on entities
-- ✅ Factory methods for entity creation
-- ✅ No raw SQL (EF Core LINQ only)
-- ✅ Structured logging (never string interpolation)
-
----
-
-## Example: Complete Entity Pattern (.NET 10)
-
-```csharp
-// Domain/Entities/AssessmentSession.cs
-namespace Assessment.Domain.Entities;
-
-public sealed class AssessmentSession : BaseEntity
-{
-    public Guid AssessmentSessionId { get; private set; } = Guid.NewGuid();
-    public string Title { get; private set; } = string.Empty;
-    public string? Description { get; private set; }
-    public AssessmentStatus Status { get; private set; }
-
-    private AssessmentSession() { } // EF Core constructor
-
-    public static AssessmentSession Create(string title, string? description, string createdBy)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(title);
-        ArgumentException.ThrowIfNullOrWhiteSpace(createdBy);
-
-        return new AssessmentSession
-        {
-            AssessmentSessionId = Guid.NewGuid(),
-            Title = title,
-            Description = description,
-            Status = AssessmentStatus.Draft,
-            CreatedBy = createdBy,
-            CreatedAt = DateTime.UtcNow,
-            IsActive = true
-        };
-    }
-
-    public void Update(string title, string? description, string updatedBy)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(title);
-        Title = title;
-        Description = description;
-        UpdatedBy = updatedBy;
-        UpdatedAt = DateTime.UtcNow;
-    }
-
-    public void Deactivate(string updatedBy)
-    {
-        IsActive = false;
-        IsDeleted = true;
-        UpdatedBy = updatedBy;
-        UpdatedAt = DateTime.UtcNow;
-    }
-}
-```
-
----
-
-## Migration Generation Example (.NET 10)
-
-```bash
-# Generate migration
-dotnet ef migrations add AddAssessmentSessionTable \
-  --project src/Assessment.Infrastructure \
-  --startup-project src/Assessment.Functions \
+dotnet ef migrations add Initial{Module}Schema \
+  --project src/{ProjectName}.{Module}/{ProjectName}.{Module}.Infrastructure \
+  --startup-project src/{ProjectName}.{Module}/{ProjectName}.{Module}.Functions \
   --output-dir Persistence/Migrations
-
-# Generate idempotent SQL for PR review
-dotnet ef migrations script --idempotent \
-  --project src/Assessment.Infrastructure \
-  --startup-project src/Assessment.Functions \
-  --output migration.sql
 ```
+All FKs DeleteBehavior.Restrict; global soft-delete filter.
 
----
+## Build, Solution, Test Wiring
+```bash
+dotnet sln {ProjectName}.sln add \
+  src/{ProjectName}.{Module}/{ProjectName}.{Module}.Domain/{ProjectName}.{Module}.Domain.csproj \
+  src/{ProjectName}.{Module}/{ProjectName}.{Module}.Application/{ProjectName}.{Module}.Application.csproj \
+  src/{ProjectName}.{Module}/{ProjectName}.{Module}.Infrastructure/{ProjectName}.{Module}.Infrastructure.csproj \
+  src/{ProjectName}.{Module}/{ProjectName}.{Module}.Functions/{ProjectName}.{Module}.Functions.csproj \
+  tests/{ProjectName}.{Module}.Tests/{ProjectName}.{Module}.Tests.csproj
+dotnet restore src/{ProjectName}.{Module}/{ProjectName}.{Module}.Functions/{ProjectName}.{Module}.Functions.csproj
+dotnet build   src/{ProjectName}.{Module}/{ProjectName}.{Module}.Functions/{ProjectName}.{Module}.Functions.csproj -c Release --no-restore
+```
+Tests use xUnit + FluentAssertions + Moq + EFCore.InMemory.
 
 ## Final LLM Instructions
+1. .NET 10 / C# 13 / EF Core 10.
+2. Canonical src/{ProjectName}.{Module}/{ProjectName}.{Module}.{Layer}/ structure - never flat, never combined.
+3. Swagger UI + OpenAPI 3.0 MANDATORY, verified before completion.
+4. Honour system-generated/immutable/unique/default/audit flags from design.json.
+5. ApiResponse<T> everywhere; FluentValidationException on validation failures.
+6. Migrations via CLI; never Database.Migrate() in app code.
+7. Add all projects to {ProjectName}.sln; test project under tests/.
+8. Output summary: File Path | Lines | Responsibility.
 
-When generating code using this skill:
-
-1. ✅ Use **.NET 10** runtime (not .NET 8)
-2. ✅ Use **C# 13** language features
-3. ✅ Use **EF Core 10** package versions
-4. ✅ Follow **all patterns** from reference document
-5. ✅ Apply **version overrides** from this skill
-6. ✅ Generate **migration CLI commands** (don't hand-author)
-7. ✅ Include **complete OpenAPI attributes** on every endpoint
-8. ✅ Use **ApiResponse<T>** envelope for all responses
-9. ✅ Never call `Database.Migrate()` from application code
-10. ✅ Output summary table: File Path | Lines | Responsibility
-
----
-
-**Version:** 1.0 (.NET 10 Edition)  
-**Last Updated:** January 2025  
-**Reference Document:** NewFunctionApp-LLM-Guideline.md (with .NET 10 overrides applied)
+Version: 2.0 (.NET 10, self-contained)

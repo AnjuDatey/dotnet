@@ -1,6 +1,6 @@
 ---
 name: new-azure-function
-description: Scaffold production-ready Azure Function Apps (.NET 10, C# 13) from scratch using Clean Architecture (4 layers), EF Core 10 Code-First with PostgreSQL, JWT auth, RBAC, unified ApiResponse envelope, FluentValidation, AutoMapper, OpenTelemetry, AES-256 PII encryption, mandatory OpenAPI 3.0 + Swagger UI, and controlled EF Core migrations. For NEW Function Apps only - use add-function-dotnet10 for extending existing apps.
+description: Scaffold production-ready Azure Function Apps (.NET 10, C# 13) from scratch using Clean Architecture (4 layers), EF Core 10 Code-First with MS SQL Server, JWT auth, RBAC, unified ApiResponse envelope, FluentValidation, AutoMapper, OpenTelemetry, AES-256 PII encryption, mandatory OpenAPI 3.0 + Swagger UI, and controlled EF Core migrations. For NEW Function Apps only - use add-function-dotnet10 for extending existing apps.
 ---
 
 # Azure Function App - Complete .NET 10 Guideline
@@ -32,6 +32,7 @@ RULES:
 - WRONG:    {Module}FunctionApp/Domain/... (flat / single combined project)
 - WRONG:    src/{Module}.Domain/... (missing {ProjectName}. module folder)
 - NEVER create a single combined {FunctionAppName} project. ALWAYS 4 layer projects.
+- Create a dedicated test project for each Clean Architecture layer.
 
 ## Tech Stack
 .NET 10 (Isolated), C# 13, EF Core 10, Azure Functions v4, Npgsql 10.x,
@@ -42,7 +43,7 @@ Microsoft.Azure.Functions.Worker.Extensions.OpenApi 2.x, IdentityModel.Tokens 8.
 ```xml
 <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.*" />
 <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.*" />
-<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.*" />
+<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.*" />
 <PackageReference Include="EFCore.NamingConventions" Version="10.*" />
 <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.*" />
 <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.*" />
@@ -146,7 +147,6 @@ dotnet restore src/{ProjectName}.{Module}/{ProjectName}.{Module}.Functions/{Proj
 dotnet build   src/{ProjectName}.{Module}/{ProjectName}.{Module}.Functions/{ProjectName}.{Module}.Functions.csproj -c Release --no-restore
 ```
 Tests use xUnit + FluentAssertions + Moq + EFCore.InMemory.
-
 ## Final LLM Instructions
 1. .NET 10 / C# 13 / EF Core 10.
 2. Canonical src/{ProjectName}.{Module}/{ProjectName}.{Module}.{Layer}/ structure - never flat, never combined.
